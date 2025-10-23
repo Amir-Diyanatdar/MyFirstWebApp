@@ -5,67 +5,73 @@ var app = builder.Build();
 
 //app.MapGet("/", () => "Hello World!");
 
-app.Run(static async (HttpContext context) =>
+app.Run(async (HttpContext context) =>
 {
-    if (context.Request.Method == "GET")
+    //if (context.Request.Method == "GET")
+    //{
+    //    if (context.Request.Path.StartsWithSegments("/"))
+    //    {
+    //        await context.Response.WriteAsync($"The method is: {context.Request.Method} \r \n");
+    //        await context.Response.WriteAsync($"The url is: {context.Request.Path} \r \n");
+    //        await context.Response.WriteAsync($"The query string is: {context.Request.QueryString} \r \n");
+    //        await context.Response.WriteAsync($"The headers are: \r \n");
+    //        foreach (var key in context.Request.Headers.Keys)
+    //        {
+    //            await context.Response.WriteAsync($"{key}: {context.Request.Headers[key]} \r \n");
+    //        }
+    //    }
+    //    else if (context.Request.Path.StartsWithSegments("/emploees"))
+    //    {
+    //        var employees = EmployeeRepository.GetEmploees();
+    //        foreach (var employee in employees)
+    //        {
+    //            await context.Response.WriteAsync($"Id: {employee.Id}, Name: {employee.Name}, Position: {employee.Position}, Salary: {employee.Salary} \r \n");
+    //        }
+
+
+
+    //    }
+    //    //else if (context.Request.Path.StartsWithSegments("/emploees"))
+    //    //{
+    //    //    await context.Response.WriteAsync("employee list");
+    //    //}
+
+    //}
+    //else if (context.Request.Method == "POST")
+    //{
+    //    if (context.Request.Path.StartsWithSegments("/emploees"))
+    //    {
+    //        using var reader = new StreamReader(context.Request.Body);
+    //        var body = await reader.ReadToEndAsync();
+    //        var employee = JsonSerializer.Deserialize<Employee>(body);
+    //        EmployeeRepository.AddEmploee(employee);
+
+    //    }
+    //}
+    //else if (context.Request.Method == "Put")
+    //{
+    //    if (context.Request.Path.StartsWithSegments("/emploees"))
+    //    {
+    //        using var reader = new StreamReader(context.Request.Body);
+    //        var body = await reader.ReadToEndAsync();
+    //        var employee = JsonSerializer.Deserialize<Employee>(body);          
+    //        var result = EmployeeRepository.UpdateEmployee(employee);
+    //        if (result)
+    //        {
+    //            await context.Response.WriteAsync("Employee updated successfully");
+    //        }
+    //        else
+    //        {
+    //            await context.Response.WriteAsync("Employee not found");
+    //        }
+    //    }
+    //}
+    //await context.Response.WriteAsync(context.Request.QueryString.ToString());
+    foreach (var key in context.Request.Query.Keys)
     {
-        if (context.Request.Path.StartsWithSegments("/"))
-        {
-            await context.Response.WriteAsync($"The method is: {context.Request.Method} \r \n");
-            await context.Response.WriteAsync($"The url is: {context.Request.Path} \r \n");
-            await context.Response.WriteAsync($"The query string is: {context.Request.QueryString} \r \n");
-            await context.Response.WriteAsync($"The headers are: \r \n");
-            foreach (var key in context.Request.Headers.Keys)
-            {
-                await context.Response.WriteAsync($"{key}: {context.Request.Headers[key]} \r \n");
-            }
-        }
-        else if (context.Request.Path.StartsWithSegments("/emploees"))
-        {
-            var emploees = EmploeeRepository.GetEmploees();
-            foreach (var emploee in emploees)
-            {
-                await context.Response.WriteAsync($"Id: {emploee.Id}, Name: {emploee.Name}, Position: {emploee.Position}, Salary: {emploee.Salary} \r \n");
-            }
-
-
-
-        }
-        //else if (context.Request.Path.StartsWithSegments("/emploees"))
-        //{
-        //    await context.Response.WriteAsync("employee list");
-        //}
-
+        await context.Response.WriteAsync($"{key} : context.Request.Query[key] \r \n");
     }
-    else if (context.Request.Method == "POST")
-    {
-        if (context.Request.Path.StartsWithSegments("/emploees"))
-        {
-            using var reader = new StreamReader(context.Request.Body);
-            var body = await reader.ReadToEndAsync();
-            var emploee = JsonSerializer.Deserialize<Emploee>(body);
-            EmploeeRepository.AddEmploee(emploee);
 
-        }
-    }
-    else if (context.Request.Method == "Put")
-    {
-        if (context.Request.Path.StartsWithSegments("/emploees"))
-        {
-            using var reader = new StreamReader(context.Request.Body);
-            var body = await reader.ReadToEndAsync();
-            var emploee = JsonSerializer.Deserialize<Emploee>(body);          
-            var result = EmploeeRepository.UpdateEmploee(emploee);
-            if (result)
-            {
-                await context.Response.WriteAsync("Employee updated successfully");
-            }
-            else
-            {
-                await context.Response.WriteAsync("Employee not found");
-            }
-        }
-    }
 
 
 });
@@ -73,32 +79,32 @@ app.Run(static async (HttpContext context) =>
 app.Run();
 
 
-public static class EmploeeRepository
+public static class EmployeeRepository
 {
-    private static List<Emploee> emploees = new List<Emploee>
+    private static List<Employee> employees = new List<Employee>
     {
-        new Emploee(1,"JohnDoe", "Engineer", 60000),
-        new Emploee(2,"Jane Smith", "Manager", 75000),
-        new Emploee(3,"Sam Brown", "Technician", 5000),
+        new Employee(1,"JohnDoe", "Engineer", 60000),
+        new Employee(2,"Jane Smith", "Manager", 75000),
+        new Employee(3,"Sam Brown", "Technician", 5000),
     };
-    public static List<Emploee> GetEmploees() => emploees;
-    public static void AddEmploee(Emploee? emploee)
+    public static List<Employee> GetEmploees() => employees;
+    public static void AddEmploee(Employee? emploee)
     {
         if (emploee != null)
         {
-            emploees.Add(emploee);
+            employees.Add(emploee);
         }
     }
-    public static bool UpdateEmploee(Emploee? emploee)
+    public static bool UpdateEmployee(Employee? employee)
     {
-        if (emploee is not null)
+        if (employee is not null)
         {
-            var emp = emploees.FirstOrDefault(e => e.Id == emploee.Id);
+            var emp = employees.FirstOrDefault(e => e.Id == employee.Id);
             if (emp is not null)
             {
-                emp.Name = emploee.Name;
-                emp.Position = emploee.Position;
-                emp.Salary = emploee.Salary;
+                emp.Name = employee.Name;
+                emp.Position = employee.Position;
+                emp.Salary = employee.Salary;
                 return true;
             }
         }
@@ -112,14 +118,14 @@ public static class EmploeeRepository
 
 
 
-public class Emploee
+public class Employee
 {
     public int Id { get; set; }
     public string Name { get; set; }
     public string Position { get; set; }
     public double Salary { get; set; }
 
-    public Emploee(int id, string name, string position, double salary)
+    public Employee(int id, string name, string position, double salary)
     {
         Id = id;
         Name = name;
