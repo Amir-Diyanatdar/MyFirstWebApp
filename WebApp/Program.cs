@@ -2,79 +2,92 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
-
-//app.MapGet("/", () => "Hello World!");
-
 app.Run(async (HttpContext context) =>
 {
-    //if (context.Request.Method == "GET")
-    //{
-    //    if (context.Request.Path.StartsWithSegments("/"))
-    //    {
-    //        await context.Response.WriteAsync($"The method is: {context.Request.Method} \r \n");
-    //        await context.Response.WriteAsync($"The url is: {context.Request.Path} \r \n");
-    //        await context.Response.WriteAsync($"The query string is: {context.Request.QueryString} \r \n");
-    //        await context.Response.WriteAsync($"The headers are: \r \n");
-    //        foreach (var key in context.Request.Headers.Keys)
-    //        {
-    //            await context.Response.WriteAsync($"{key}: {context.Request.Headers[key]} \r \n");
-    //        }
-    //    }
-    //    else if (context.Request.Path.StartsWithSegments("/emploees"))
-    //    {
-    //        var employees = EmployeeRepository.GetEmploees();
-    //        foreach (var employee in employees)
-    //        {
-    //            await context.Response.WriteAsync($"Id: {employee.Id}, Name: {employee.Name}, Position: {employee.Position}, Salary: {employee.Salary} \r \n");
-    //        }
-
-
-
-    //    }
-    //    //else if (context.Request.Path.StartsWithSegments("/emploees"))
-    //    //{
-    //    //    await context.Response.WriteAsync("employee list");
-    //    //}
-
-    //}
-    //else if (context.Request.Method == "POST")
-    //{
-    //    if (context.Request.Path.StartsWithSegments("/emploees"))
-    //    {
-    //        using var reader = new StreamReader(context.Request.Body);
-    //        var body = await reader.ReadToEndAsync();
-    //        var employee = JsonSerializer.Deserialize<Employee>(body);
-    //        EmployeeRepository.AddEmploee(employee);
-
-    //    }
-    //}
-    //else if (context.Request.Method == "Put")
-    //{
-    //    if (context.Request.Path.StartsWithSegments("/emploees"))
-    //    {
-    //        using var reader = new StreamReader(context.Request.Body);
-    //        var body = await reader.ReadToEndAsync();
-    //        var employee = JsonSerializer.Deserialize<Employee>(body);          
-    //        var result = EmployeeRepository.UpdateEmployee(employee);
-    //        if (result)
-    //        {
-    //            await context.Response.WriteAsync("Employee updated successfully");
-    //        }
-    //        else
-    //        {
-    //            await context.Response.WriteAsync("Employee not found");
-    //        }
-    //    }
-    //}
-    //await context.Response.WriteAsync(context.Request.QueryString.ToString());
-    foreach (var key in context.Request.Query.Keys)
+    if (context.Request.Path.StartsWithSegments("/"))
     {
-        await context.Response.WriteAsync($"{key} : context.Request.Query[key] \r \n");
+        context.Response.Headers["Content-Type"] = "text/html";
+        await context.Response.WriteAsync($"The method is: {context.Request.Method} <br/>");
+        await context.Response.WriteAsync($"The url is: {context.Request.Path}  <br/>");
+        await context.Response.WriteAsync($"The query string is: {context.Request.QueryString}  <br/>");
+        await context.Response.WriteAsync($"<b>Headers: <br/>");
+        await context.Response.WriteAsync($"<ul>");
+        foreach (var key in context.Request.Headers.Keys)
+        {
+            await context.Response.WriteAsync($"<li><b>{key}<b/>: {context.Request.Headers[key]} </li>");
+        }
+        await context.Response.WriteAsync($"</ul>");
+    }
+    else if (context.Request.Path.StartsWithSegments("/emploees"))
+    {
+
+        if (context.Request.Method == "GET")
+        {
+            var employees = EmployeeRepository.GetEmploees();
+            foreach (var employee in employees)
+            {
+                await context.Response.WriteAsync($"Id: {employee.Id}, Name: {employee.Name}, Position: {employee.Position}, Salary: {employee.Salary} \r \n");
+            }
+        }
+        context.Response.StatusCode = 200;
+
     }
 
+    else if (context.Request.Method == "POST")
+    {
 
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+        var employee = JsonSerializer.Deserialize<Employee>(body);
+        EmployeeRepository.AddEmploee(employee);
+        context.Response.StatusCode = 201;
+
+    }
+    else if (context.Request.Method == "Put")
+    {
+
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+        var employee = JsonSerializer.Deserialize<Employee>(body);
+        var result = EmployeeRepository.UpdateEmployee(employee);
+        if (result)
+        {
+            await context.Response.WriteAsync("Employee updated successfully");
+        }
+        else
+        {
+            await context.Response.WriteAsync("Employee not found");
+        }
+        context.Response.StatusCode = 204;
+        return;
+
+    }
+
+    else if (context.Request.Method == "Delete")
+    {
+
+        if (context.Request.Query.ContainsKey("id"))
+        {
+            ReadOnlySpan<byte> id = default;
+            if (int.TryParse(id, out int employId))
+            {
+                var result = EmployeeRepository.DeleteEmployee(employId);
+                if (result)
+                {
+                    await context.Response.WriteAsync("Employee deleted successfully");
+                }
+                else
+                {
+                    await context.Response.WriteAsync("Employee not found");
+                }
+            }
+        }
+
+    }
 
 });
+
+
 
 app.Run();
 
@@ -107,6 +120,16 @@ public static class EmployeeRepository
                 emp.Salary = employee.Salary;
                 return true;
             }
+        }
+        return false;
+    }
+    public static bool DeleteEmployee(int id)
+    {
+        var employee = employees.FirstOrDefault(e => e.Id == id);
+        if (employee is not null)
+        {
+            employees.Remove(employee);
+            return true;
         }
         return false;
     }
